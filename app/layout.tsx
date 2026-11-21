@@ -7,6 +7,8 @@ import {
 } from "next/font/google";
 import "./globals.css";
 
+import { AppProviders } from "@/components/providers/app-providers";
+
 // Sora is the logo typeface, so headings sound like the brand.
 const heading = Sora({
   variable: "--font-sora",
@@ -54,7 +56,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${heading.variable} ${body.variable} ${mono.variable} ${devanagari.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        <AppProviders>{children}</AppProviders>
+      </body>
     </html>
   );
 }

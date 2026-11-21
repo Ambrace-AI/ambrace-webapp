@@ -41,15 +41,21 @@ written next to each one).
 
 ## Checks
 
-| Command                | What it does                                         |
-| ---------------------- | ---------------------------------------------------- |
-| `npm run format:check` | Prettier. Nothing hand-written is excluded.          |
-| `npm run lint`         | ESLint with the Next.js rules. No files are skipped. |
-| `npm run typecheck`    | TypeScript in strict mode.                           |
-| `npm test`             | Vitest. `npm run test:watch` reruns on save.         |
-| `npm run build`        | Production build.                                    |
+| Command                 | What it does                                         |
+| ----------------------- | ---------------------------------------------------- |
+| `npm run format:check`  | Prettier. Nothing hand-written is excluded.          |
+| `npm run lint`          | ESLint with the Next.js rules. No files are skipped. |
+| `npm run typecheck`     | TypeScript in strict mode.                           |
+| `npm test`              | Vitest. `npm run test:watch` reruns on save.         |
+| `npm run test:coverage` | Tests plus coverage; fails below the thresholds.     |
+| `npm run build`         | Production build.                                    |
 
 CI runs all five on every pull request (`.github/workflows/checks.yml`).
+
+Tests live in `tests/`, named after what they cover. Coverage is measured
+across `app/`, `components/`, `lib/` and `proxy.ts`, and CI fails if it falls
+below 90% of statements, lines and functions or 80% of branches. Raise those
+numbers as coverage grows; do not lower them to get a change through.
 
 Tests run in Node by default, because the voice-engine tests build their own
 browser stand-ins. A component test opts in to a browser by starting with

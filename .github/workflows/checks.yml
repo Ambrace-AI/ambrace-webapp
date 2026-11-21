@@ -46,8 +46,9 @@ jobs:
         run: npm run typecheck
 
       # Includes the frozen voice-engine checksums and the brand contrast rules.
-      - name: Unit tests
-        run: npm test
+      # Fails if coverage drops below the thresholds in vitest.config.mts.
+      - name: Unit tests with coverage
+        run: npm run test:coverage
 
       - name: Production build
         run: npm run build

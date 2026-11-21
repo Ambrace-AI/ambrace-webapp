@@ -16,7 +16,28 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["tests/**/*.test.{ts,tsx}"],
+    setupFiles: ["tests/setup.ts"],
     // Every spy is undone after each test, so one test cannot leak into the next.
     restoreMocks: true,
+    coverage: {
+      provider: "v8",
+      reporter: ["text-summary", "html"],
+      // Everything we ship. Files with no test at all still count, as zero.
+      include: ["app/**", "components/**", "lib/**", "proxy.ts"],
+      exclude: [
+        // The live-session hook ties the voice engine to React. It is ported
+        // unchanged and is exercised end to end by a real viva; its unit
+        // tests are written with the viva screen, where it is first used.
+        "lib/hooks/useVivaSession.ts",
+      ],
+      // CI fails if coverage falls below these. Raise them as coverage grows;
+      // never lower them to make a change pass.
+      thresholds: {
+        statements: 90,
+        branches: 80,
+        functions: 90,
+        lines: 90,
+      },
+    },
   },
 });

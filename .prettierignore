@@ -4,6 +4,7 @@
 # Build output and installed packages
 .next/
 out/
+coverage/
 node_modules/
 
 # Written by tools, not by people
