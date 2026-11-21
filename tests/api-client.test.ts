@@ -8,8 +8,8 @@ import api, {
   concludeViva,
   getAuthToken,
   getVivaSession,
-  setAuthToken,
   setTokenGetter,
+  setUnauthorizedHandler,
   startVivaSession,
 } from "@/lib/api/axios";
 import { httpStatus, isSignedOutError } from "@/lib/api/errors";
@@ -68,7 +68,8 @@ beforeEach(() => {
     return response;
   };
   api.defaults.adapter = adapter;
-  setAuthToken(null);
+  setTokenGetter(async () => null);
+  setUnauthorizedHandler(null);
 });
 afterEach(() => {
   api.defaults.adapter = originalAdapter;
@@ -117,13 +118,34 @@ describe("the access token on API calls", () => {
     expect(sent[0].authorization).toBeUndefined();
     expect(warn).toHaveBeenCalled();
   });
+});
 
-  test("a fixed token can be set and cleared", async () => {
-    setAuthToken("fixed");
-    expect(await getAuthToken()).toBe("fixed");
+describe("a call refused as signed out", () => {
+  test("is reported once, with the address that was refused", async () => {
+    const refused = vi.fn();
+    setUnauthorizedHandler(refused);
+    answer(401);
 
-    setAuthToken(null);
-    expect(await getAuthToken()).toBeNull();
+    await expect(getMe()).rejects.toMatchObject({ response: { status: 401 } });
+
+    expect(refused).toHaveBeenCalledTimes(1);
+    expect(refused).toHaveBeenCalledWith("/api/v1/me");
+  });
+
+  test("other failures are not reported as signed out", async () => {
+    const refused = vi.fn();
+    setUnauthorizedHandler(refused);
+    answer(503);
+
+    await expect(getMe()).rejects.toBeDefined();
+
+    expect(refused).not.toHaveBeenCalled();
+  });
+
+  test("with nobody listening, the failure still reaches the caller", async () => {
+    answer(401);
+
+    await expect(getMe()).rejects.toMatchObject({ response: { status: 401 } });
   });
 });
 

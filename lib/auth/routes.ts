@@ -11,6 +11,10 @@ export const RESET_PASSWORD_PATH = "/reset-password";
 export const AUTH_CALLBACK_PATH = "/auth/callback";
 export const ONBOARDING_PATH = "/onboarding";
 export const HOME_PATH = "/";
+export const VIVA_PATH = "/viva";
+
+/** A finished viva's report. The voice engine sends students to this path. */
+export const reportPath = (sessionId: string) => `/v/${sessionId}`;
 
 /** Screens whose whole purpose is getting signed in. */
 const SIGNED_OUT_ONLY = [SIGN_IN_PATH, SIGN_UP_PATH, RESET_PASSWORD_PATH];

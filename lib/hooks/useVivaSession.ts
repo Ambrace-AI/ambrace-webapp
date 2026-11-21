@@ -19,6 +19,7 @@ import { createToolHandler } from "./viva/tool-handlers";
 import { createAudioPipeline } from "./viva/audio-pipeline";
 import { createSessionStartup } from "./viva/session-startup";
 import { createLiveRecoveryHandlers } from "./viva/live-recovery-handlers";
+import { createConclusionWatchdog } from "./viva/conclusion-watchdog";
 import { abandonViva } from "@/lib/api/axios";
 import {
   applyAbandonOutcome,
@@ -236,11 +237,18 @@ export function useVivaSession() {
       await recorder.startRecording(
         (audioData, timing) => {
           const client = geminiClientRef.current;
-          const { microphoneState, isMuted } = useVivaStore.getState();
+          const { microphoneState, isMuted, sessionState } =
+            useVivaStore.getState();
+          // The student is heard only during the conversation. Once the ending
+          // has been asked for, nothing said in the room may interrupt it.
+          const hearing =
+            sessionState === SessionState.ACTIVE
+              ? microphoneState
+              : MicrophoneState.IDLE;
           let sendFailed = false;
           audioPipeline.forwardMicrophoneAudio(
             audioData,
-            microphoneState,
+            hearing,
             isMuted,
             (data) =>
               client?.sendAudio(data, () => {
@@ -580,15 +588,21 @@ export function useVivaSession() {
       current.conclusionData
     )
       return;
-    if (current.connectionStatus === "reconnecting") {
+    // A conversation that is under way concludes; anything earlier is given up.
+    const conversing =
+      geminiClientRef.current && current.sessionState === SessionState.ACTIVE;
+    if (conversing && current.connectionStatus === "reconnecting") {
+      // The request is kept and sent when the line returns. Say so at once:
+      // an accepted request must never look like a press that did nothing.
       pendingConclusionRef.current = true;
+      setSessionState(SessionState.CONCLUDING);
       return;
     }
-    if (
-      geminiClientRef.current &&
-      current.sessionState === SessionState.ACTIVE
-    ) {
+    if (conversing && geminiClientRef.current) {
       console.log("[useVivaSession] User requested end. Prompting AI...");
+      // Close the student's audio turn first, so the request is not queued
+      // behind speech the examiner is still waiting to hear the end of.
+      geminiClientRef.current.endAudioStream();
       const accepted = geminiClientRef.current.sendText(CONCLUSION_PROMPT);
       if (accepted) {
         setSessionState(SessionState.CONCLUDING);
@@ -597,6 +611,7 @@ export function useVivaSession() {
       // A synchronous send failure may already have started recovery.
       if (useVivaStore.getState().connectionStatus === "reconnecting") {
         pendingConclusionRef.current = true;
+        setSessionState(SessionState.CONCLUDING);
         return;
       }
     }
@@ -606,6 +621,30 @@ export function useVivaSession() {
       // Keep the page available for a retry; expiry reconciliation is the fallback.
     }
   }, [abandonSession, setSessionState]);
+
+  // A requested ending is bounded: the report arrives, or the session is given up.
+  const concluding = store.sessionState === SessionState.CONCLUDING;
+  useEffect(() => {
+    if (!concluding) return;
+    const watchdog = createConclusionWatchdog({
+      isSettled: () =>
+        isConclusionSavingRef.current ||
+        useVivaStore.getState().conclusionData !== null,
+      askAgain: () => {
+        // While the line is down, recovery already owns the pending request.
+        if (useVivaStore.getState().connectionStatus === "connected")
+          geminiClientRef.current?.sendText(CONCLUSION_PROMPT);
+      },
+      giveUp: () => {
+        setError(
+          "Your examiner could not prepare the report. Please start a new viva.",
+        );
+        void abandonSession(true).catch(() => {});
+      },
+    });
+    watchdog.start();
+    return () => watchdog.stop();
+  }, [concluding, abandonSession, setError]);
 
   // Toggle mute
   const toggleMute = useCallback(() => {

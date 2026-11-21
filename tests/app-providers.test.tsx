@@ -12,9 +12,12 @@ vi.mock("@/lib/auth/client", () => ({
 }));
 
 const setTokenGetter = vi.fn();
+const setUnauthorizedHandler = vi.fn();
 vi.mock("@/lib/api/axios", () => ({
   setTokenGetter: (getter: unknown) => setTokenGetter(getter),
+  setUnauthorizedHandler: (handler: unknown) => setUnauthorizedHandler(handler),
 }));
+vi.mock("@/lib/api/me", () => ({ ME_PATH: "/api/v1/me" }));
 
 function failure(status: number) {
   return new AxiosError("failed", undefined, undefined, undefined, {
@@ -46,6 +49,7 @@ beforeEach(() => {
   configureAuth.mockReset();
   getAccessToken.mockReset();
   setTokenGetter.mockReset();
+  setUnauthorizedHandler.mockReset();
 });
 afterEach(cleanup);
 
@@ -61,6 +65,55 @@ describe("starting the app in the browser", () => {
     getAccessToken.mockResolvedValue("access-token");
     const getter = setTokenGetter.mock.calls[0][0] as () => Promise<string>;
     expect(await getter()).toBe("access-token");
+  });
+});
+
+describe("a call refused as signed out", () => {
+  function MeProbe({ load }: { load: () => Promise<string> }) {
+    const { data } = useQuery({ queryKey: ["me"], queryFn: load });
+    return <p>{data ?? "loading"}</p>;
+  }
+
+  async function renderWithProfile(load: () => Promise<string>) {
+    const AppProviders = await loadProviders();
+    const view = render(
+      <AppProviders>
+        <MeProbe load={load} />
+      </AppProviders>,
+    );
+    await screen.findByText("profile");
+    const refused = setUnauthorizedHandler.mock.calls[0][0] as (
+      path?: string,
+    ) => void;
+    return { view, refused };
+  }
+
+  test("makes the app check the profile again, which decides if the session ended", async () => {
+    const load = vi.fn<() => Promise<string>>().mockResolvedValue("profile");
+    const { refused } = await renderWithProfile(load);
+
+    refused("/api/v1/viva/start");
+
+    await waitFor(() => expect(load).toHaveBeenCalledTimes(2));
+  });
+
+  test("a refused profile check is not asked again, or it would never stop", async () => {
+    const load = vi.fn<() => Promise<string>>().mockResolvedValue("profile");
+    const { refused } = await renderWithProfile(load);
+
+    refused("/api/v1/me");
+
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(load).toHaveBeenCalledTimes(1);
+  });
+
+  test("the app stops listening when it is torn down", async () => {
+    const load = vi.fn<() => Promise<string>>().mockResolvedValue("profile");
+    const { view } = await renderWithProfile(load);
+
+    view.unmount();
+
+    expect(setUnauthorizedHandler).toHaveBeenLastCalledWith(null);
   });
 });
 

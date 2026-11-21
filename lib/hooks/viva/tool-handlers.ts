@@ -1,7 +1,7 @@
 /** Saves Gemini tool results and coordinates final playback with session completion. */
 
 import { useVivaStore } from "@/lib/store/viva-store";
-import { concludeViva, setAuthToken } from "@/lib/api/axios";
+import { concludeViva } from "@/lib/api/axios";
 
 // Debug utility - disabled in production
 const debug =
@@ -151,8 +151,9 @@ export function createToolHandler(deps: ToolHandlerDependencies) {
       try {
         debug("AI requested conclusion. Saving results...");
 
-        // Get fresh auth token before API call
-        const token = await getToken();
+        // Confirm the sign-in session is still readable before the terminal
+        // write. The API client attaches its own fresh token to the request.
+        await getToken();
         if (
           cancelled.has(id) ||
           useVivaStore.getState().sessionId !== currentSessionId
@@ -162,7 +163,6 @@ export function createToolHandler(deps: ToolHandlerDependencies) {
             deps.isConclusionSavingRef.current = false;
           return;
         }
-        setAuthToken(token);
         // This terminal tool is the final-audio boundary. No Gemini
         // function response is sent and no later turnComplete is needed.
         deps.onTerminalCallAccepted?.();

@@ -2,7 +2,7 @@ import type { Me, ProfileUpdate } from "@/types/profile";
 
 import api from "./axios";
 
-const ME_PATH = "/api/v1/me";
+export const ME_PATH = "/api/v1/me";
 
 /** Who is signed in, and whether they still need to finish onboarding. */
 export async function getMe(): Promise<Me> {
