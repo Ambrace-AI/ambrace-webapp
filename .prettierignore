@@ -1,0 +1,19 @@
+# Only generated or third-party output is listed here. Everything written for
+# this app, including the ported voice engine, is formatted and linted.
+
+# Build output and installed packages
+.next/
+out/
+node_modules/
+
+# Written by tools, not by people
+package-lock.json
+next-env.d.ts
+AGENTS.md
+data/curriculum/
+tests/frozen-engine.json
+
+# Brand files from the logo kit, used exactly as supplied
+public/brand/
+public/favicon.svg
+public/site.webmanifest

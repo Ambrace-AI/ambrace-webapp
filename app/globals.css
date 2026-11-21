@@ -1,0 +1,210 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans:
+    var(--font-inter), var(--font-devanagari), ui-sans-serif, system-ui,
+    sans-serif;
+  --font-heading:
+    var(--font-sora), var(--font-devanagari), ui-sans-serif, system-ui,
+    sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-ember: var(--ember);
+  --color-ember-foreground: var(--ember-foreground);
+  --color-ember-text: var(--ember-text);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/*
+ * Ambrace brand tokens.
+ *
+ * Two surfaces, each with a job:
+ *   Paper (light) is for reading and reflecting: reports, history, forms.
+ *   Ink (dark, the .dark class) is for presence: sign-in and the live viva,
+ *   where the screen should recede and the voice should lead.
+ *
+ * Ember stands for the student. It is not the general "primary" colour: it is
+ * reserved for the one action on a screen that moves the student forward, and
+ * for the student in the logo. Everyday emphasis uses Ink on Paper and Mist on
+ * Ink, so Ember stays rare enough to mean something.
+ *
+ * No gradients and no glows anywhere: flat colour and space carry the calm.
+ */
+:root {
+  --radius: 0.75rem;
+
+  --background: #f4f3ef; /* Paper */
+  --foreground: #0b0b10; /* Ink */
+  --card: #fbfaf7;
+  --card-foreground: #0b0b10;
+  --popover: #fbfaf7;
+  --popover-foreground: #0b0b10;
+  --primary: #0b0b10;
+  --primary-foreground: #f4f3ef;
+  --secondary: #e9e7e1;
+  --secondary-foreground: #0b0b10;
+  --muted: #e9e7e1;
+  --muted-foreground: #55536a;
+  --accent: #e9e7e1;
+  --accent-foreground: #0b0b10;
+  --border: #cfcdd8; /* Orbit light */
+  --input: #cfcdd8;
+  --ring: #0b0b10;
+
+  --ember: #ff6b4a;
+  --ember-foreground: #0b0b10; /* never white on Ember: 2.8:1 fails, Ink is 6.9:1 */
+  --ember-text: #c43d1c; /* coral text on Paper must use this, not Ember */
+
+  --destructive: #e5484d;
+  --success: #3db37a;
+  --warning: #f2b544;
+  --info: #6c7cff;
+
+  --chart-1: #0b0b10;
+  --chart-2: #ff6b4a;
+  --chart-3: #6c7cff;
+  --chart-4: #3db37a;
+  --chart-5: #f2b544;
+
+  --sidebar: #efede8;
+  --sidebar-foreground: #0b0b10;
+  --sidebar-primary: #0b0b10;
+  --sidebar-primary-foreground: #f4f3ef;
+  --sidebar-accent: #e3e1da;
+  --sidebar-accent-foreground: #0b0b10;
+  --sidebar-border: #cfcdd8;
+  --sidebar-ring: #0b0b10;
+}
+
+.dark {
+  --background: #0b0b10; /* Ink */
+  --foreground: #ecebf2; /* Mist */
+  --card: #1c1b25; /* Graphite */
+  --card-foreground: #ecebf2;
+  --popover: #1c1b25;
+  --popover-foreground: #ecebf2;
+  --primary: #ecebf2;
+  --primary-foreground: #0b0b10;
+  --secondary: #1c1b25;
+  --secondary-foreground: #ecebf2;
+  --muted: #1c1b25;
+  --muted-foreground: #9a98ac;
+  --accent: #26252f;
+  --accent-foreground: #ecebf2;
+  --border: #3a3946; /* Orbit dark */
+  --input: #3a3946;
+  --ring: #ecebf2;
+
+  --ember: #ff6b4a;
+  --ember-foreground: #0b0b10;
+  --ember-text: #ff6b4a; /* Ember itself is readable on Ink */
+
+  --destructive: #e5484d;
+  --success: #3db37a;
+  --warning: #f2b544;
+  --info: #6c7cff;
+
+  --chart-1: #ecebf2;
+  --chart-2: #ff6b4a;
+  --chart-3: #6c7cff;
+  --chart-4: #3db37a;
+  --chart-5: #f2b544;
+
+  --sidebar: #0b0b10;
+  --sidebar-foreground: #ecebf2;
+  --sidebar-primary: #ecebf2;
+  --sidebar-primary-foreground: #0b0b10;
+  --sidebar-accent: #1c1b25;
+  --sidebar-accent-foreground: #ecebf2;
+  --sidebar-border: #3a3946;
+  --sidebar-ring: #ecebf2;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+  }
+  body {
+    @apply bg-background text-foreground;
+    line-height: 1.6;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+@layer utilities {
+  /* Small technical labels and live status ("listening", "analysing"). */
+  .label-mono {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+}
+
+/* People who ask for less motion get none of the decorative kind. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
