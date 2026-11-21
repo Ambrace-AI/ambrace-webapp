@@ -29,6 +29,13 @@ vi.mock("@/components/onboarding/onboarding-flow", () => ({
   OnboardingFlow: () => <p>onboarding</p>,
 }));
 vi.mock("@/components/app/home", () => ({ Home: () => <p>home</p> }));
+vi.mock("@/components/viva/viva-room", () => ({
+  VivaRoom: () => <p>viva room</p>,
+}));
+vi.mock("@/components/report/viva-report", () => ({
+  VivaReport: () => <p>report</p>,
+  ReportOutline: () => <p>report outline</p>,
+}));
 vi.mock("@/components/app/app-header", () => ({
   AppHeader: () => <p>header</p>,
 }));
@@ -96,6 +103,31 @@ describe("signed-in addresses", () => {
 
     expect(page.metadata.title).toBe("Home");
     expect(screen.getByText("home")).toBeTruthy();
+  });
+
+  test("a report sits inside the app, under the header", async () => {
+    const page = await import("@/app/(app)/v/[id]/page");
+
+    render(<page.default />);
+
+    expect(page.metadata.title).toBe("Report");
+    expect(screen.getByText("report")).toBeTruthy();
+  });
+
+  test("the viva needs a profile but has no header to wander off through", async () => {
+    const { default: VivaLayout } = await import("@/app/(viva)/layout");
+    const page = await import("@/app/(viva)/viva/page");
+
+    const { container } = render(
+      <VivaLayout>
+        <page.default />
+      </VivaLayout>,
+    );
+
+    expect(page.metadata.title).toBe("Viva");
+    const gate = container.querySelector("[data-needs]");
+    expect(gate?.getAttribute("data-needs")).toBe("profile");
+    expect(gate?.textContent).toBe("viva room");
   });
 
   test("onboarding only needs a session, or it would redirect to itself", async () => {

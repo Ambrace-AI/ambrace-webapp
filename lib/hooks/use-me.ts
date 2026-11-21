@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getMe, saveProfile } from "@/lib/api/me";
 import type { Me, ProfileUpdate } from "@/types/profile";
 
-const ME_KEY = ["me"] as const;
+export const ME_KEY = ["me"] as const;
 
 /** The signed-in student and their profile. Shared by every screen. */
 export function useMe() {

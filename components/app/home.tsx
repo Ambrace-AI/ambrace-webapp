@@ -1,11 +1,18 @@
 "use client";
 
+import { ArrowRightIcon, XIcon } from "lucide-react";
+import Link from "next/link";
+
+import { FormMessage } from "@/components/forms/fields";
+import { Button } from "@/components/ui/button";
+import { VIVA_PATH } from "@/lib/auth/routes";
 import { useMe } from "@/lib/hooks/use-me";
+import { useVivaStore } from "@/lib/store/viva-store";
 import { BOARD_LABELS } from "@/types/profile";
 
 /**
- * The signed-in home. For now it confirms who is signed in and what we know
- * about them; starting a viva and the history list arrive in the next phase.
+ * The signed-in home. One thing to do here, so one thing is offered: start a
+ * viva. Past sessions will join it below.
  */
 export function Home() {
   const { data: me } = useMe();
@@ -30,15 +37,53 @@ export function Home() {
         </h1>
       </div>
 
-      <section className="flex flex-col gap-3 rounded-xl border border-border bg-card p-6">
-        <p className="label-mono text-muted-foreground">Coming next</p>
-        <h2 className="text-xl">Your first viva</h2>
-        <p className="text-muted-foreground">
-          Sign-in and your profile are ready. Choosing a chapter and speaking
-          with your examiner are being connected in the next build.
-        </p>
+      <LastVivaNotice />
+
+      <section className="flex flex-col items-start gap-5 rounded-xl border border-border bg-card p-6 sm:p-8">
+        <div className="flex flex-col gap-2">
+          <h2 className="text-2xl">Ready when you are</h2>
+          <p className="text-muted-foreground">
+            Pick a chapter and talk it through with your examiner. It takes a
+            few minutes, and you get a report at the end.
+          </p>
+        </div>
+        <Button asChild variant="ember" size="touch">
+          <Link href={VIVA_PATH}>
+            Start a viva
+            <ArrowRightIcon aria-hidden="true" />
+          </Link>
+        </Button>
       </section>
     </main>
+  );
+}
+
+/**
+ * When a viva breaks (a blocked microphone, a lost line) the voice engine
+ * brings the student back here. Without this they would land on the home
+ * screen with no idea why, so the reason travels with them until dismissed.
+ */
+function LastVivaNotice() {
+  const reason = useVivaStore((state) => state.error);
+  const setError = useVivaStore((state) => state.setError);
+  if (!reason) return null;
+
+  return (
+    <FormMessage tone="error">
+      <div className="flex items-start justify-between gap-3">
+        <p>
+          <span className="font-medium">Your viva stopped.</span> {reason}
+        </p>
+        <button
+          type="button"
+          aria-label="Dismiss"
+          onClick={() => setError(null)}
+          className="-m-2 flex size-9 shrink-0 items-center justify-center rounded-lg outline-none hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          <XIcon className="size-4" aria-hidden="true" />
+        </button>
+      </div>
+    </FormMessage>
   );
 }
 

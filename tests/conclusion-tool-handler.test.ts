@@ -3,6 +3,7 @@ import { test } from "vitest";
 import { createToolHandler } from "../lib/hooks/viva/tool-handlers";
 import { createAudioPipeline } from "../lib/hooks/viva/audio-pipeline";
 import { useVivaStore } from "../lib/store/viva-store";
+import { getAuthToken, setTokenGetter } from "../lib/api/axios";
 import { ConversationState, PlaybackState } from "../types/viva";
 
 test("conclusion saves actionable guidance in the same report exactly once", async () => {
@@ -397,6 +398,46 @@ test("invalid first conclusion clears stale speaking and exits without generatin
     assert.equal(writes, 0);
     assert.equal(failures, 1);
   } finally {
+    useVivaStore.getState().resetSession();
+  }
+});
+
+test("saving the report never replaces the app's source of fresh tokens", async () => {
+  useVivaStore.getState().resetSession();
+  useVivaStore.setState({ sessionId: "fresh-token" });
+  // The app registers one token source at start-up. An earlier version froze
+  // the token in use at the end of a viva, so every later request reused it
+  // until it expired.
+  const tokens = ["first", "second", "third"];
+  setTokenGetter(async () => tokens.shift() ?? null);
+  const handler = createToolHandler({
+    setError: () => {},
+    finishConclusion: () => {},
+    hasPendingPlayback: () => false,
+    isConclusionPendingRef: { current: false },
+    getToken: getAuthToken,
+    saveConclusion: async (payload) => ({
+      status: "completed",
+      score: payload.score,
+      final_feedback: payload.summary,
+    }),
+  });
+  try {
+    await handler(
+      "conclude_viva",
+      {
+        score: 7,
+        summary: "Clear.",
+        strong_points: [],
+        areas_of_improvement: [],
+      },
+      "call-1",
+    );
+
+    assert.equal(await getAuthToken(), "second");
+    assert.equal(await getAuthToken(), "third");
+  } finally {
+    setTokenGetter(async () => null);
     useVivaStore.getState().resetSession();
   }
 });
